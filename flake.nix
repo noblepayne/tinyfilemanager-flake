@@ -20,34 +20,13 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          tinyFileManager = pkgs.callPackage ./tinyFileManager.nix { };
+          tinyFileManagerServer = pkgs.callPackage ./tinyFileManagerServer.nix { inherit tinyFileManager; };
         in
         rec {
-          tinyfilemanager = pkgs.stdenv.mkDerivation {
-            name = "tinyfilemanager";
-            src = pkgs.fetchFromGitHub {
-              owner = "prasathmani";
-              repo = "tinyfilemanager";
-              rev = "2.5.0";
-              hash = "sha256-taKADcmduazrw03jz0OTc62dWNE85x9WJ1XsQHzU/Kg=";
-            };
-            dontBuild = true;
-            installPhase = ''
-              mkdir $out
-              cp -r * $out/
-            '';
-          };
-          serve = pkgs.writeShellApplication {
-            name = "serve";
-            runtimeInputs = [
-              pkgs.coreutils # better stat on macos?
-              pkgs.php
-              tinyfilemanager
-            ];
-            text = ''
-              php -S 127.0.0.1:9999 "${tinyfilemanager}/tinyfilemanager.php"
-            '';
-          };
-          default = serve;
+          inherit tinyFileManager;
+          inherit tinyFileManagerServer;
+          default = tinyFileManagerServer;
         }
       );
     };
